@@ -1,17 +1,14 @@
 package MailTestHelper.controller;
 
-import MailTestHelper.response.Attachment;
 import MailTestHelper.response.Message;
 import MailTestHelper.logic.MimeMessageLogic;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
 import java.io.IOException;
@@ -23,17 +20,18 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/messages")
-public class MailController {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+@Slf4j
+public class MailRestController {
     @Autowired
     MimeMessageLogic mimeMessageLogic;
 
-    @RequestMapping(value = "/a")
+
+    @RequestMapping(value = "")
     public List<Message> list() {
         return mimeMessageLogic.getMessageList();
     }
 
-    @RequestMapping(value = "/{id}.json")
+    @RequestMapping(value = "/{id}")
     public Message detail(@PathVariable String id) {
         return mimeMessageLogic.getMessage(id);
     }
@@ -45,10 +43,10 @@ public class MailController {
 
     @RequestMapping(value = "/{id}/{cid:.+}")
     public HttpEntity<byte[]> attachment(@PathVariable String id, @PathVariable String cid) throws IOException, MessagingException {
-        logger.info("id={}, cid={}", id, cid);
-        Attachment att = mimeMessageLogic.getAttachment(id, cid);
+        log.info("id={}, cid={}", id, cid);
+        val att = mimeMessageLogic.getAttachment(id, cid);
 
-        HttpHeaders headers = new HttpHeaders();
+        val headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf(att.getContentType()));
         headers.setContentLength(att.getData().length);
         headers.setContentDispositionFormData("attachment", att.getFileName());
@@ -65,6 +63,13 @@ public class MailController {
     @RequestMapping(value = "/{id}.source")
     public String source(@PathVariable String id) {
         return mimeMessageLogic.getSource(id);
+    }
+
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public Message delete(@PathVariable("id") String id) {
+        val m = mimeMessageLogic.getMessage(id);
+        mimeMessageLogic.delete(id);
+        return m;
     }
 
 }

@@ -20,7 +20,7 @@ import java.io.*;
 @Service
 @Data
 @Slf4j
-class MessageHandlerImpl implements MessageHandler {
+public class MessageHandlerImpl implements MessageHandler {
     @Autowired
     private MailRepository mailRepotiroty;
 
@@ -43,9 +43,7 @@ class MessageHandlerImpl implements MessageHandler {
                 mailRepotiroty.save(m);
             });
             log.info("save an email into persistent repository.");
-        } catch (MessagingException e) {
-            log.error("generating email is failed", e);
-        } catch (IOException e) {
+        } catch (MessagingException | IOException e) {
             log.error("generating email is failed", e);
         }
     }
