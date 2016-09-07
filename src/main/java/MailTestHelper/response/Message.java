@@ -3,9 +3,9 @@ package MailTestHelper.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
-import javax.mail.Header;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by kenji on 2016/07/06.
@@ -22,7 +22,7 @@ public class Message {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String html;
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<Header> headers;
+    private Map<String, String> headers;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Attachment> attachments;
 

@@ -60,9 +60,16 @@ public class MailRestController {
         return mimeMessageLogic.getMessage(id).getHtml();
     }
 
+    //    @RequestMapping(value = "/{id}.source")
+//    public String source(@PathVariable String id) {
+//        return mimeMessageLogic.getSource(id);
+//    }
     @RequestMapping(value = "/{id}.source")
-    public String source(@PathVariable String id) {
-        return mimeMessageLogic.getSource(id);
+    public HttpEntity<String> source(@PathVariable String id) {
+        val headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+
+        return new HttpEntity<String>(mimeMessageLogic.getSource(id), headers);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)

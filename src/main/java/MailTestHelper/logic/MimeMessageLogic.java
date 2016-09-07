@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 
@@ -20,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.springframework.data.domain.Sort.Direction.ASC;
 
 /**
  * Created by kenji on 2016/07/08.
@@ -36,7 +40,7 @@ public class MimeMessageLogic {
     private Session session = Session.getDefaultInstance(new java.util.Properties(), null);
 
 
-    public String getSource(String id){
+    public String getSource(String id) {
         val mail = mailRepotiroty.findOne(id);
         try {
             return IOUtils.toString(new ByteArrayInputStream(mail.getMessage()), "US-ASCII");
@@ -45,8 +49,9 @@ public class MimeMessageLogic {
         }
     }
 
-    public List<MailTestHelper.response.Message> getMessageList(){
-        val mails = mailRepotiroty.findAll();
+    public List<MailTestHelper.response.Message> getMessageList() {
+        Pageable pageable = new PageRequest(0, 3, ASC, "date");
+        val mails = mailRepotiroty.findAll(pageable).getContent();
         return mails.stream().map(m -> {
             MailTestHelper.response.Message message = new MailTestHelper.response.Message();
             message.setId(m.getId());
@@ -58,7 +63,7 @@ public class MimeMessageLogic {
         }).collect(Collectors.toList());
     }
 
-    public MailTestHelper.response.Message getMessage(String id){
+    public MailTestHelper.response.Message getMessage(String id) {
         val mail = mailRepotiroty.findOne(id);
         return convertMailEntityToMessageDetail(mail);
     }
@@ -66,19 +71,19 @@ public class MimeMessageLogic {
     public Attachment getAttachment(String id, String cid) throws IOException, MessagingException {
         val mail = mailRepotiroty.findOne(id);
         val message = convertMailEntityToMessageDetail(mail);
-        val att =  message.getAttachments().stream().filter(a -> a.getContentId().equals(cid)).findFirst();
+        val att = message.getAttachments().stream().filter(a -> a.getContentId().equals(cid)).findFirst();
         att.orElseThrow(() -> (new NotFoundException("This message does not have such content.")));
         return att.get();
     }
 
     private List<Attachment> getAttachments(MimeMessage m) throws MessagingException, IOException {
         val attachments = new ArrayList<Attachment>();
-        if(m.isMimeType(MULTIPART_ALTERNATIVE)){
-            val mp = (Multipart)m.getContent();
-            for(int i = 0; i < mp.getCount(); i++){
-                if(Part.ATTACHMENT.equals(mp.getBodyPart(i).getDisposition()) &&
-                        mp.getBodyPart(i) instanceof MimeBodyPart){
-                    val mbp = (MimeBodyPart)mp.getBodyPart(i);
+        if (m.isMimeType(MULTIPART_ALTERNATIVE)) {
+            val mp = (Multipart) m.getContent();
+            for (int i = 0; i < mp.getCount(); i++) {
+                if (Part.ATTACHMENT.equals(mp.getBodyPart(i).getDisposition()) &&
+                        mp.getBodyPart(i) instanceof MimeBodyPart) {
+                    val mbp = (MimeBodyPart) mp.getBodyPart(i);
                     val att = new Attachment();
                     att.setContentId(mbp.getContentID());
                     att.setData(IOUtils.toByteArray(mbp.getInputStream()));
@@ -92,21 +97,21 @@ public class MimeMessageLogic {
     }
 
     private String getTextPart(MimeMessage m, String partName) throws MessagingException, IOException {
-        if(m.isMimeType(partName)) {
-            return (String)m.getContent();
-        }else if(m.isMimeType(MULTIPART_ALTERNATIVE)){
-            val mp = (Multipart)m.getContent();
-            for(int i = 0; i < mp.getCount(); i++){
+        if (m.isMimeType(partName)) {
+            return (String) m.getContent();
+        } else if (m.isMimeType(MULTIPART_ALTERNATIVE)) {
+            val mp = (Multipart) m.getContent();
+            for (int i = 0; i < mp.getCount(); i++) {
                 val bp = mp.getBodyPart(i);
-                if(bp.isMimeType(partName)){
-                    return (String)bp.getContent();
+                if (bp.isMimeType(partName)) {
+                    return (String) bp.getContent();
                 }
             }
         }
         return null;
     }
 
-    public MailTestHelper.response.Message convertMailEntityToMessageDetail(MailEntity me){
+    public MailTestHelper.response.Message convertMailEntityToMessageDetail(MailEntity me) {
         try {
             val m = new MimeMessage(session, new ByteArrayInputStream(me.getMessage()));
             val message = new MailTestHelper.response.Message();
@@ -118,7 +123,7 @@ public class MimeMessageLogic {
             message.setDate(me.getDate());
             // The detail of email
             Enumeration<Header> headers = m.getAllHeaders();
-            message.setHeaders(Collections.list(headers).stream().collect(Collectors.toList()));
+            message.setHeaders(Collections.list(headers).stream().collect(Collectors.toMap(Header::getName, Header::getValue)));
             message.setHtml(getTextPart(m, TEXT_HTML));
             message.setText(getTextPart(m, TEXT_PLAIN));
             message.setAttachments(getAttachments(m));
@@ -137,7 +142,7 @@ public class MimeMessageLogic {
         val from = mimeMessage.getFrom()[0].toString();
         val date = mimeMessage.getSentDate();
 
-        return Arrays.asList(mimeMessage.getAllRecipients()).stream().map(to ->{
+        return Arrays.asList(mimeMessage.getAllRecipients()).stream().map(to -> {
             MailEntity mailEntity = new MailEntity();
             mailEntity.setMessage(rawData);
             mailEntity.setTo(to.toString());
@@ -149,7 +154,7 @@ public class MimeMessageLogic {
         }).collect(Collectors.toList());
     }
 
-    public void delete(String id){
+    public void delete(String id) {
         mailRepotiroty.delete(id);
         log.info("deleted from data base. id={}", id);
     }

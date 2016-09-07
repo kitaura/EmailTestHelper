@@ -4,72 +4,113 @@
     <title>Email Test Helper</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="stylesheet" href="styles/layout.css" type="text/css" media="all"/>
-    <link rel="stylesheet" href="styles/mediaqueries.css" type="text/css" media="all"/>
     <link rel="stylesheet" href="styles/w3.css" type="text/css" media="all"/>
+    <link rel="stylesheet" href="lib/bower_components/font-awesome/css/font-awesome.min.css"  type="text/css" media="all">
+    <link href="lib/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="lib/bower_components/angular/angular.min.js"></script>
+    <script src="lib/bower_components/angular-animate/angular-animate.min.js"></script>
+    <script src="lib/bower_components/angular-sanitize/angular-sanitize.min.js"></script>
     <script src="lib/bower_components/angular-resource/angular-resource.min.js"></script>
     <script src="message.js"></script>
     <script src="lib/bower_components/jquery/dist/jquery.min.js"></script>
     <script src="lib/bower_components/jquery-mobile-menu/dest/jQuery.mobile.menu.min.js"></script>
     <script src="lib/bower_components/angular-resource/angular-resource.min.js"></script>
+    <script src="lib/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 
-    <!--[if lt IE 9]>
-    <link rel="stylesheet" href="styles/ie.css" type="text/css" media="all"/>
-    <script src="scripts/ie/css3-mediaqueries.min.js"></script>
-    <script src="scripts/ie/ie9.js"></script>
-    <script src="scripts/ie/html5shiv.min.js"></script>
-    <![endif]-->
-    <!-- BEFORE USING THIS FRAMEWORK REMOVE THIS DEMO STYLING - ONLY USED TO EMPHASISE THE DIV CONTAINERS IN THE CONTENT AREA -->
-    <style type="text/css">
-div.full_width{margin-top:20px;}
-div.full_width:first-child{margin-top:0;}
-div.full_width div{color:#666666; background-color:#DEDEDE;}
-    </style>
-    <!-- END DEMO STYLING -->
+
 </head>
 <body ng-controller="EthController">
-<div class="wrapper row1">
-    <header id="header" class="clear">
-        <div id="hgroup">
-            <h1><a href="#">Email Test Helper</a></h1>
-        </div>
-    </header>
+<div class="w3-top">
+    <ul class="w3-navbar w3-black">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Setting</a></li>
+        <li class="w3-navitem">
+            <input type="text" class="w3-input w3-border-0 w3-padding-0" placeholder="Search..">
+        </li>
+    </ul>
 </div>
-<div class="wrapper row2">
-    <nav id="topnav">
-        <ul class="clear">
-            <li class="active first"><a href="index.html">Homepage</a></li>
-            <li><a href="#">Setting</a></li>
 
-        </ul>
-    </nav>
-</div>
 <!-- content -->
-<div class="wrapper row3">
-    <div id="container">
-        <h2>Emails</h2>
-        <table class="w3-table-all">
-            <tr>
-                <th>from</th>
-                <th>subject</th>
-                <th>date</th>
+<div class="w3-content" style="max-width:1800px;margin-top:46px">
+
+    <!-- list of messages -->
+    <div class="w3-row w3-margin">
+        <table class="w3-table w3-striped w3-bordered w3-border">
+            <thead>
+            <tr class="w3-light-grey">
+                <th>From</th>
+                <th>To</th>
+                <th>Subject</th>
+                <th>Received</th>
+                <th></th>
             </tr>
-            <tr ng-repeat="message in messages">
+            </thead>
+            <tr ng-repeat="message in messages" ng-click="selectMessage(message.id)" class="w3-hover-orange">
                 <td>{{message.from}}</td>
+                <td>{{message.to}}</td>
                 <td>{{message.subject}}</td>
                 <td>{{message.date}}</td>
+                <td><i ng-click="deleteMessage(message.id)" class="fa fa-trash"></i></td>
             </tr>
         </table>
     </div>
+    <!-- email headers -->
+    <div class="w3-row w3-margin w3-sand">
+        <div class="w3-col s9 w3-center">
+            <table class="w3-table">
+                <tr>
+                    <td>Received</td>
+                    <td>{{selectedMessage.date}}</td>
+                </tr>
+                <tr>
+                    <td>From</td>
+                    <td>{{selectedMessage.from}}</td>
+                </tr>
+                <tr>
+                    <td>To</td>
+                    <td>{{selectedMessage.to}}</td>
+                </tr>
+                <tr>
+                    <td>Subject</td>
+                    <td>{{selectedMessage.subject}}</td>
+                </tr>
+                <tr>
+                    <td>Message-ID</td>
+                    <td>{{selectedMessage.headers['Message-ID']}}</td>
+                </tr>
+                <tr>
+                    <td>Attachments</td>
+                    <td><a ng-repeat="attachment in selectedMessage.attachments"
+                           href="/messages/{{selectedMessage.id}}/{{attachment.contentId}}/">{{attachment.fileName}}</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="w3-col s3 w3-right-align">
+            <a href="/messages/{{id}}.source"><i class="fa fa fa-download w3-margin"
+                                                 style="font-size:24px;color:grey"></i></a>
+        </div>
+    </div>
+    <!-- email contents -->
+    <div class="w3-row w3-margin">
+        <uib-tabset active="active">
+            <uib-tab index="0" heading="HTML">
+                <iframe ng-src="{{url}}" width="100%" height="500">this is iframe contents</iframe>
+            </uib-tab>
+            <uib-tab index="1" heading="TEXT">
+                <pre>{{text}}</pre>
+            </uib-tab>
+            <uib-tab index="2" heading="SOURCE">
+                <pre>{{source}}</pre>
+            </uib-tab>
+        </uib-tabset>
+    </div>
 </div>
+
+
 <!-- Footer -->
-<div class="wrapper row4">
-    <footer id="footer" class="clear">
-        <p class="fl_left">Copyright &copy; 2016 - All Rights Reserved - <a href="#">Domain Name</a></p>
-        <p class="fl_right">Template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS
-            Templates</a></p>
-    </footer>
-</div>
+<footer class="w3-container w3-padding-64 w3-center w3-opacity w3-light-grey w3-xlarge">
+    <p class="w3-medium">Powered by <a href="http://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+</footer>
 </body>
 </html>
