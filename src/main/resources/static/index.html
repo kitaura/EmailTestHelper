@@ -53,6 +53,8 @@
                 <td><i ng-click="deleteMessage(message.id)" class="fa fa-trash"></i></td>
             </tr>
         </table>
+        <ul uib-pagination ng-change="pageChanged()" style="margin-bottom: 5px; margin-top: 10px"
+            total-items="totalItems" ng-model="currentPage" max-size="maxSize" boundary-link-numbers="true" rotate="false"></ul>
     </div>
     <!-- email headers -->
     <div class="w3-row w3-margin w3-sand">

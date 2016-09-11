@@ -5,6 +5,7 @@ import MailTestHelper.logic.MimeMessageLogic;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,8 +28,9 @@ public class MailRestController {
 
 
     @RequestMapping(value = "")
-    public List<Message> list() {
-        return mimeMessageLogic.getMessageList();
+    public Page<Message> list(@RequestParam(value = "pageNum", defaultValue = "0") int pageNum,
+                                @RequestParam(value = "searchKey") String searchKey) {
+        return mimeMessageLogic.getMessageList(pageNum, searchKey);
     }
 
     @RequestMapping(value = "/{id}")

@@ -4,11 +4,14 @@ import MailTestHelper.errors.ApplicationException;
 import MailTestHelper.errors.NotFoundException;
 import MailTestHelper.persistent.MailEntity;
 import MailTestHelper.persistent.MailRepository;
-import MailTestHelper.response.Attachment;
+import MailTestHelper.response.*;
+import MailTestHelper.response.Message;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -49,10 +52,10 @@ public class MimeMessageLogic {
         }
     }
 
-    public List<MailTestHelper.response.Message> getMessageList() {
-        Pageable pageable = new PageRequest(0, 3, ASC, "date");
-        val mails = mailRepotiroty.findAll(pageable).getContent();
-        return mails.stream().map(m -> {
+    public Page<MailTestHelper.response.Message> getMessageList(int pageNum, String searchKey) {
+        Pageable pageable = new PageRequest(pageNum, 10, ASC, "date");
+        val mails = mailRepotiroty.findAll(pageable);
+        val messages = mails.getContent().stream().map(m -> {
             MailTestHelper.response.Message message = new MailTestHelper.response.Message();
             message.setId(m.getId());
             message.setSubject(m.getSubject());
@@ -61,6 +64,7 @@ public class MimeMessageLogic {
             message.setDate(m.getDate());
             return message;
         }).collect(Collectors.toList());
+        return new PageImpl<MailTestHelper.response.Message>(messages, pageable, mails.getTotalElements());
     }
 
     public MailTestHelper.response.Message getMessage(String id) {

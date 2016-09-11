@@ -8,7 +8,24 @@ angular.module('eth', ['ngResource', 'ngSanitize' , 'ui.bootstrap'])
         }
     );
     // all messages
-    $scope.messages = Message.query();
+    var messages = Message.get();
+    console.log(messages);
+    messages.$promise.then(function() {
+        $scope.messages = messages.content;
+        // page items
+        $scope.totalItems = messages.totalElements;
+        $scope.currentPage = 1;
+        $scope.maxSize = 10;
+    });
+
+    $scope.pageChanged = function() {
+        console.log('Page changed to: ' + $scope.currentPage);
+        var messages = Message.get({ pageNum: $scope.currentPage - 1 });
+        messages.$promise.then(function() {
+                $scope.messages = messages.content;
+            });
+     };
+
 
     // delete message
     $scope.deleteMessage = function(id){
