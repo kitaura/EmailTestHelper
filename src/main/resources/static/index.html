@@ -25,7 +25,7 @@
         <li><a href="#">Home</a></li>
         <li><a href="#">Setting</a></li>
         <li class="w3-navitem">
-            <input type="text" class="w3-input w3-border-0 w3-padding-0" placeholder="Search..">
+            <input type="text" ng-model="searchKey" ng-keyup="$event.keyCode == 13 ? search() : null" class="w3-input w3-border-0 w3-padding-0 w3-text-blue" placeholder="Search..">
         </li>
     </ul>
 </div>

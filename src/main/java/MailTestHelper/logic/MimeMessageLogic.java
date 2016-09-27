@@ -52,9 +52,13 @@ public class MimeMessageLogic {
         }
     }
 
+
     public Page<MailTestHelper.response.Message> getMessageList(int pageNum, String searchKey) {
         Pageable pageable = new PageRequest(pageNum, 10, ASC, "date");
-        val mails = mailRepotiroty.findAll(pageable);
+
+        val mails = Optional.ofNullable(searchKey).
+                map(k -> mailRepotiroty.findBySearchKeyContains(k, pageable)).
+                orElseGet(() -> mailRepotiroty.findAll(pageable));
         val messages = mails.getContent().stream().map(m -> {
             MailTestHelper.response.Message message = new MailTestHelper.response.Message();
             message.setId(m.getId());
@@ -145,6 +149,9 @@ public class MimeMessageLogic {
         // TODO allow registering multiple from address
         val from = mimeMessage.getFrom()[0].toString();
         val date = mimeMessage.getSentDate();
+        val text = getTextPart(mimeMessage, TEXT_HTML);
+        val html = getTextPart(mimeMessage, TEXT_PLAIN);
+
 
         return Arrays.asList(mimeMessage.getAllRecipients()).stream().map(to -> {
             MailEntity mailEntity = new MailEntity();
@@ -153,6 +160,8 @@ public class MimeMessageLogic {
             mailEntity.setSubject(subject);
             mailEntity.setFrom(from);
             mailEntity.setDate(date);
+            mailEntity.setSearchKey(String.join(to.toString(),
+                    from, subject, text, html));
             log.info("register an entity. to={}", to);
             return mailEntity;
         }).collect(Collectors.toList());

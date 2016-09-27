@@ -11,4 +11,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MailRepository extends JpaRepository<MailEntity, String> {
     Page<MailEntity> findAll(Pageable pageabl);
+    Page<MailEntity> findBySearchKeyContains(String searchKey, Pageable pageabl);
 }

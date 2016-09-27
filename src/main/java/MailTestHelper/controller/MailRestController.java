@@ -29,7 +29,7 @@ public class MailRestController {
 
     @RequestMapping(value = "")
     public Page<Message> list(@RequestParam(value = "pageNum", defaultValue = "0") int pageNum,
-                                @RequestParam(value = "searchKey") String searchKey) {
+                                @RequestParam(value = "searchKey", required = false) String searchKey) {
         return mimeMessageLogic.getMessageList(pageNum, searchKey);
     }
 

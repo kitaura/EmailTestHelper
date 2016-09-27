@@ -23,7 +23,7 @@ angular.module('eth', ['ngResource', 'ngSanitize' , 'ui.bootstrap'])
         var messages = Message.get({ pageNum: $scope.currentPage - 1 });
         messages.$promise.then(function() {
                 $scope.messages = messages.content;
-            });
+        });
      };
 
 
@@ -35,6 +35,16 @@ angular.module('eth', ['ngResource', 'ngSanitize' , 'ui.bootstrap'])
                 $scope.messages = Message.query();
             }
         );
+    };
+
+    $scope.search = function(){
+        var messages = Message.get({ searchKey: $scope.searchKey });
+        messages.$promise.then(function() {
+                $scope.messages = messages.content;
+            $scope.totalItems = messages.totalElements;
+            $scope.currentPage = 1;
+            $scope.maxSize = 10;
+        });
     };
 
     $scope.selectMessage = function(id){
