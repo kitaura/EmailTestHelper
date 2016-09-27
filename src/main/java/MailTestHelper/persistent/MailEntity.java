@@ -26,6 +26,7 @@ public class MailEntity {
 
     @Lob
     private byte[] message;
+    @Column(length=102400)
     private String searchKey;
 
 }

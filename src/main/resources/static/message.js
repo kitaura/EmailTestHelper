@@ -2,14 +2,11 @@ angular.module('eth', ['ngResource', 'ngSanitize' , 'ui.bootstrap'])
     .controller('EthController', ['$scope', '$resource', '$http', '$sce', function($scope, $resource, $http, $sce){
     var Message = $resource(
         'messages/:id.:format',
-        {id: '@id'},
-        {
-
-        }
+        {id: '@id'},{}
     );
     // all messages
     var messages = Message.get();
-    console.log(messages);
+    // console.log(messages);
     messages.$promise.then(function() {
         $scope.messages = messages.content;
         // page items
@@ -19,10 +16,10 @@ angular.module('eth', ['ngResource', 'ngSanitize' , 'ui.bootstrap'])
     });
 
     $scope.pageChanged = function() {
-        console.log('Page changed to: ' + $scope.currentPage);
+        // console.log('Page changed to: ' + $scope.currentPage);
         var messages = Message.get({ pageNum: $scope.currentPage - 1 });
         messages.$promise.then(function() {
-                $scope.messages = messages.content;
+            $scope.messages = messages.content;
         });
      };
 
@@ -32,7 +29,10 @@ angular.module('eth', ['ngResource', 'ngSanitize' , 'ui.bootstrap'])
         Message.delete(
             {id: id},
             function(){
-                $scope.messages = Message.query();
+                var messages = Message.get({ pageNum: $scope.currentPage - 1 });
+                messages.$promise.then(function() {
+                    $scope.messages =  messages.content;
+                });
             }
         );
     };
@@ -40,10 +40,9 @@ angular.module('eth', ['ngResource', 'ngSanitize' , 'ui.bootstrap'])
     $scope.search = function(){
         var messages = Message.get({ searchKey: $scope.searchKey });
         messages.$promise.then(function() {
-                $scope.messages = messages.content;
+            $scope.messages = messages.content;
             $scope.totalItems = messages.totalElements;
             $scope.currentPage = 1;
-            $scope.maxSize = 10;
         });
     };
 
