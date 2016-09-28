@@ -1,44 +1,67 @@
 angular.module('eth', ['ngResource', 'ngSanitize' , 'ui.bootstrap'])
-    .controller('EthController', ['$scope', '$resource', '$http', '$sce', function($scope, $resource, $http, $sce){
-    var Message = $resource(
-        'messages/:id.:format',
-        {id: '@id'},{}
-    );
-    // all messages
-    var messages = Message.get();
-    // console.log(messages);
-    messages.$promise.then(function() {
-        $scope.messages = messages.content;
-        // page items
-        $scope.totalItems = messages.totalElements;
-        $scope.currentPage = 1;
-        $scope.maxSize = 10;
-    });
+    .factory('MessageService', ['$resource', '$http', function($resource, $http){
+        var Message = $resource(
+                'messages/:id.:format',
+                {id: '@id'},{}
+            );
+        var httpGet = function(id, format) {
+            return $http.get('messages/' + id + '.' + format)
+                .then(function(response) {
+                return response.data;
+            });
+         };
+
+        return {
+            delete: function(id, action) {
+                Message.delete({id: id}, action);
+            },
+            get: function(id) {
+                return Message.get({ id: id});
+            },
+            page: function(pageNum) {
+                return Message.get({ pageNum: pageNum -1});
+            },
+            search: function(searchKey){
+                return Message.get({ searchKey: searchKey });
+            },
+            getSource: function(id) {
+                return httpGet(id, 'source');
+             },
+             getText: function(id) {
+                return httpGet(id, 'text');
+             }
+
+        }
+    }])
+
+    .controller('EthController', ['$scope', '$sce', 'MessageService', function($scope, $sce, MessageService){
+
+    $scope.currentPage = 1;
+    $scope.maxSize = 10;
+
+    var loadMailList = function(pageNum){
+        var messages = MessageService.page($scope.currentPage);
+        messages.$promise.then(function() {
+            $scope.messages = messages.content;
+            $scope.totalItems = messages.totalElements;
+        });
+    };
+
+    loadMailList(1);
 
     $scope.pageChanged = function() {
         // console.log('Page changed to: ' + $scope.currentPage);
-        var messages = Message.get({ pageNum: $scope.currentPage - 1 });
-        messages.$promise.then(function() {
-            $scope.messages = messages.content;
-        });
+        loadMailList($scope.currentPage);
      };
 
 
     // delete message
     $scope.deleteMessage = function(id){
-        Message.delete(
-            {id: id},
-            function(){
-                var messages = Message.get({ pageNum: $scope.currentPage - 1 });
-                messages.$promise.then(function() {
-                    $scope.messages =  messages.content;
-                });
-            }
-        );
+        MessageService.delete(id, function(){loadMailList($scope.currentPage);});
     };
 
     $scope.search = function(){
-        var messages = Message.get({ searchKey: $scope.searchKey });
+        var messages = MessageService.search($scope.searchKey);
         messages.$promise.then(function() {
             $scope.messages = messages.content;
             $scope.totalItems = messages.totalElements;
@@ -48,19 +71,16 @@ angular.module('eth', ['ngResource', 'ngSanitize' , 'ui.bootstrap'])
 
     $scope.selectMessage = function(id){
         $scope.id = id;
-        $scope.selectedMessage = Message.get({id: id});
+        $scope.selectedMessage = MessageService.get(id);
 
-        $http({method: 'GET',url: 'messages/' + id + '.text'})
-            .success(function(data){
-                $scope.text = data;
-            }
-        );
+        MessageService.getText(id).then(function(data) {
+            $scope.text = data;
+        });
 
-       $http({method: 'GET',url: 'messages/' + id + '.source'})
-            .success(function(data){
-                $scope.source = data;
-            }
-        );
+
+        MessageService.getSource(id).then(function(data) {
+            $scope.source = data;
+        });
 
         $scope.url = $sce.trustAsResourceUrl('messages/' + id + '.html');
 
